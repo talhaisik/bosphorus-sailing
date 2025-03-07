@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Water } from 'three/addons/objects/Water.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 let scene, camera, renderer, water, boat;
 let controls;
@@ -43,12 +44,32 @@ function init() {
     water.rotation.x = -Math.PI / 2;
     scene.add(water);
 
-    // Simple boat (temporary cube)
-    const boatGeometry = new THREE.BoxGeometry(2, 1, 4);
-    const boatMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
-    boat = new THREE.Mesh(boatGeometry, boatMaterial);
-    boat.position.y = 0.5;
-    scene.add(boat);
+    // Load boat model
+    const loader = new GLTFLoader();
+    loader.load(
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Sailboat/glTF/Sailboat.gltf',
+        function (gltf) {
+            boat = gltf.scene;
+            boat.scale.set(0.5, 0.5, 0.5);
+            boat.position.y = 0.1;
+            boat.rotation.y = Math.PI;
+            scene.add(boat);
+        },
+        // Progress callback
+        function (xhr) {
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        // Error callback
+        function (error) {
+            console.error('An error happened:', error);
+            // Fallback to cube if model fails to load
+            const boatGeometry = new THREE.BoxGeometry(2, 1, 4);
+            const boatMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+            boat = new THREE.Mesh(boatGeometry, boatMaterial);
+            boat.position.y = 0.5;
+            scene.add(boat);
+        }
+    );
 
     // Handle window resize
     window.addEventListener('resize', onWindowResize, false);
